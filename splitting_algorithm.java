@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Scanner;
 
 
 //Draft of UserID Object
@@ -17,7 +19,7 @@ class IDObject {
     }
 
     public IDObject disconnect() {
-        return connectionList.removeLast();
+        return connectionList.remove(connectionList.size() - 1);
     }
 
     public void connectUpdate(IDObject n) {
@@ -31,8 +33,7 @@ class Classify {
     int count;
 
     public Classify(List<IDObject> id) {
-        id = new ArrayList<>();
-        this.id = id;
+        this.id = new ArrayList<>(id);
         count = id.size();
         updateOriginal();
         mapping = new HashMap<>();
@@ -61,15 +62,15 @@ class Classify {
             mapping.put(id.get(2), id.get(2).connectionList);
             mapping.put(id.get(3), id.get(3).connectionList);
             mapping.put(id.get(id.size() - 1), id.get(id.size() - 1).connectionList);
-        } 
+        }
 
         else if (count % 5 == 1) {
             id.get(id.size() - 2).disconnect();
             id.get(3).disconnect();
             id.get(id.size() - 2).connectUpdate(id.get(id.size() - 1));
             
-            id.get(id.size() - 1).connect(3);
-            id.get(id.size() - 1).connect(4);
+            id.get(id.size() - 1).connect(id.get(3));
+            id.get(id.size() - 1).connect(id.get(4));
             
             id.get(id.size() - 1).connectUpdate(id.get(id.size() - 2));
 
@@ -78,13 +79,13 @@ class Classify {
 
             if (count > 10)
             {
-                id.get(id.size() - 1).connect(5);
+                id.get(id.size() - 1).connect(id.get(5));
                 id.get(5).connect(id.get(id.size() - 1));
                 mapping.put(id.get(5), id.get(5).connectionList);
             }   
             else
             {
-                id.get(id.size() - 1).connect(0);
+                id.get(id.size() - 1).connect(id.get(0));
                 id.get(0).connect(id.get(id.size() - 1));
             }         
             
@@ -216,27 +217,27 @@ class Classify {
     public void updateOriginal() {
         if (count % 5 == 0) {
             for (int i = 0; i < id.size(); i++) {
-                if (count % 5 == 0) {
+                if (i % 5 == 0) {
                     id.get(i).connect(id.get(i + 1));
                     id.get(i).connect(id.get(i + 2));
                     id.get(i).connect(id.get(i + 3));
                     id.get(i).connect(id.get(i + 4));
-                } else if (count % 5 == 1) {
+                } else if (i % 5 == 1) {
                     id.get(i).connect(id.get(i - 1));
                     id.get(i).connect(id.get(i + 1));
                     id.get(i).connect(id.get(i + 2));
                     id.get(i).connect(id.get(i + 3));
-                } else if (count % 5 == 2) {
+                } else if (i % 5 == 2) {
                     id.get(i).connect(id.get(i - 2));
                     id.get(i).connect(id.get(i - 1));
                     id.get(i).connect(id.get(i + 1));
                     id.get(i).connect(id.get(i + 2));
-                } else if (count % 5 == 3) {
+                } else if (i % 5 == 3) {
                     id.get(i).connect(id.get(i - 3));
                     id.get(i).connect(id.get(i - 2));
                     id.get(i).connect(id.get(i - 1));
                     id.get(i).connect(id.get(i + 1));
-                } else if (count % 5 == 4) {
+                } else if (i % 5 == 4) {
                     id.get(i).connect(id.get(i - 4));
                     id.get(i).connect(id.get(i - 3));
                     id.get(i).connect(id.get(i - 2));
@@ -248,27 +249,27 @@ class Classify {
         else {
             int loop = count / 5;
             for (int i = 0; i < loop * 5; i++) {
-                if (count % 5 == 0) {
+                if (i % 5 == 0) {
                     id.get(i).connect(id.get(i + 1));
                     id.get(i).connect(id.get(i + 2));
                     id.get(i).connect(id.get(i + 3));
                     id.get(i).connect(id.get(i + 4));
-                } else if (count % 5 == 1) {
+                } else if (i % 5 == 1) {
                     id.get(i).connect(id.get(i - 1));
                     id.get(i).connect(id.get(i + 1));
                     id.get(i).connect(id.get(i + 2));
                     id.get(i).connect(id.get(i + 3));
-                } else if (count % 5 == 2) {
+                } else if (i % 5 == 2) {
                     id.get(i).connect(id.get(i - 2));
                     id.get(i).connect(id.get(i - 1));
                     id.get(i).connect(id.get(i + 1));
                     id.get(i).connect(id.get(i + 2));
-                } else if (count % 5 == 3) {
+                } else if (i % 5 == 3) {
                     id.get(i).connect(id.get(i - 3));
                     id.get(i).connect(id.get(i - 2));
                     id.get(i).connect(id.get(i - 1));
                     id.get(i).connect(id.get(i + 1));
-                } else if (count % 5 == 4) {
+                } else if (i % 5 == 4) {
                     id.get(i).connect(id.get(i - 4));
                     id.get(i).connect(id.get(i - 3));
                     id.get(i).connect(id.get(i - 2));
@@ -379,4 +380,27 @@ class Classify {
         }
     }
 
+}
+
+
+public class splitting_algorithm {
+    public static void main(String[] args) {
+        List<IDObject> id = new ArrayList<>();
+        for (int i = 0; i < 51; i++)
+        {
+            id.add(new IDObject(i));
+        }
+        Classify cl = new Classify(id);
+        //cl.update(new IDObject(50));
+        //cl.update(new IDObject(51));
+        //cl.update(new IDObject(52));
+        //cl.update(new IDObject(53));
+        //cl.update(new IDObject(54));
+        List<IDObject> test = cl.mapping.get(cl.id.get(1));
+        for (int i = 0; i < test.size(); i++)
+        {
+            int a = test.get(i).id;
+            System.out.println(a);
+        }
+    }
 }
