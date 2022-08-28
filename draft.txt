@@ -15,7 +15,6 @@ import {
 	WebsocketMessagePayload,
 } from "./types";
 
-
 const PORT = 8888;
 
 let SOCKETS: SocketMap = {};
@@ -23,22 +22,18 @@ const ROOM_DETAILS: RoomDetail[] = [
 	{
 		roomName: "Public Study Room 1",
 		roomId: uuidv4(),
-		//create room1;
 	},
 	{
 		roomName: "Public Study Room 2",
 		roomId: uuidv4(),
-		//create room2;
 	},
 	{
 		roomName: "Public Study Room 3",
 		roomId: uuidv4(),
-		//create room3;
 	},
 	{
 		roomName: "Public Study Room 4",
 		roomId: uuidv4(),
-		//create room4;
 	},
 ];
 
@@ -61,7 +56,7 @@ const buildMessage = (type: MESSAGE_TYPES, data: WebsocketMessagePayload) => ({ 
 
 const joinRoom = (roomId: string, socketId: string, userId: string) => {
 	console.log({ before: SOCKETS });
-	setUserMetadata(socketId, { userId, roomId }); //current structure of metadata: userId + Room ID, needs to add an array of subgroup of users
+	setUserMetadata(socketId, { userId, roomId });
 	console.log({ after: SOCKETS });
 	addUserIdToSocketMap(userId, socketId);
 	ROOM_USERS[roomId].push(userId);
@@ -82,45 +77,14 @@ const app = uWS
 			// console.log(clientMsg);
 
 			switch (clientMsg.type) {
-				//get users into the room
 				case MESSAGE_TYPES.JOIN_ROOM:
-					/* 
-					Find the size of the room
-					Create the array accordingly
-					return it
-					if (room.size % 5 == 0)
-					{
-						update socket userid map
-					}
-					else if (room.size % 5 == 1)
-					{
-						update socket useridmap
-					}
-					else if (room.size % 5 == 2)
-					{
-						update socket useridmap
-					}
-					else if (room.size % 5 == 3)
-					{
-						update socket useridmap
-					}
-					else 
-					{
-						update socket useridmap
-					}
-					*/
 					joinRoom(roomId, ws.id, sender);
 					ws.subscribe(roomId);
 					return broadcast(roomId, buildMessage(MESSAGE_TYPES.NEW_USER, { sender }));
 
-				//setup partial mesh rotation
-				
-				/*
-					
-				*/
-				/*case MESSAGE_TYPES.INITIATE_CONNECTION:
+				case MESSAGE_TYPES.INITIATE_CONNECTION:
 					return broadcast(roomId, buildMessage(MESSAGE_TYPES.ROOM_USERS, ROOM_USERS[roomId]));
-				*/
+
 				case MESSAGE_TYPES.OFFER:
 					return sendToSocket(getSocketWithUserId(target), buildMessage(MESSAGE_TYPES.OFFER, clientMsg.data as RTCOfferPayload));
 
