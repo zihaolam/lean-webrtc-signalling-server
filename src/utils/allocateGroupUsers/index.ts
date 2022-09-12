@@ -12,14 +12,22 @@ class User implements UserInterface {
 
 	connect = (user: UserInterface) => {
 		this.peerUsers.push(user);
+		user.peerUsers.push(this);
 	};
 
 	disconnect = () => {
+		this.peerUsers[this.peerUsers.length - 1].peerUsers.pop();
+		this.peerUsers.pop();
+	};
+
+	disconnect_user = (user: UserInterface) => {
+		this.peerUsers[this.peerUsers.length - 1].peerUsers.pop();
 		this.peerUsers.pop();
 	};
 
 	updatePeer = (user: UserInterface) => {
 		this.peerUsers.unshift(user);
+		user.peerUsers.unshift(this);
 	};
 }
 
@@ -36,6 +44,20 @@ class Classify {
 			this.mapping[this.peerUsers[i].id] = this.peerUsers[i].peerUsers;
 		}
 	}
+	
+	//currently working on translations
+	leave = (user: User) => {
+		if (this.count <= 5) {
+			for (var i = user.peerUsers.length - 1; i >= 0; i--) {
+				var connected = user.peerUsers[i];
+				user.disconnect_user(connected);
+				this.mapping[connected.id] = connected.peerUsers;
+			}
+		}
+		else {
+			
+		}
+	};
 
 	update = (user: User) => {
 		this.peerUsers.push(user);
@@ -43,144 +65,85 @@ class Classify {
 		const divisor = this.count % 5;
 
 		if (divisor === 0) {
-			this.peerUsers[this.peerUsers.length - 1].connect(this.peerUsers[0]);
-			this.peerUsers[this.peerUsers.length - 1].connect(this.peerUsers[1]);
-			this.peerUsers[this.peerUsers.length - 1].connect(this.peerUsers[2]);
-			this.peerUsers[this.peerUsers.length - 1].connect(this.peerUsers[3]);
 
-			this.peerUsers[0].connect(this.peerUsers[this.peerUsers.length - 1]);
-			this.peerUsers[1].connect(this.peerUsers[this.peerUsers.length - 1]);
-			this.peerUsers[2].connect(this.peerUsers[this.peerUsers.length - 1]);
-			this.peerUsers[3].connect(this.peerUsers[this.peerUsers.length - 1]);
+			for (var i = 0; i < 5; i++) {
+				this.peerUsers[this.peerUsers.length - 1].connect(this.peerUsers[i]);
+				this.mapping[i] = this.peerUsers[i].peerUsers;
+			}
 
-			this.mapping[0] = this.peerUsers[0].peerUsers;
-			this.mapping[1] = this.peerUsers[1].peerUsers;
-			this.mapping[2] = this.peerUsers[2].peerUsers;
-			this.mapping[3] = this.peerUsers[3].peerUsers;
 			this.mapping[this.peerUsers.length - 1] = this.peerUsers[this.peerUsers.length - 1].peerUsers;
 		} else if (divisor === 1) {
 			this.peerUsers[this.peerUsers.length - 2].disconnect();
-			this.peerUsers[3].disconnect();
 			this.peerUsers[this.peerUsers.length - 2].updatePeer(this.peerUsers[this.peerUsers.length - 1]);
 
 			this.peerUsers[this.peerUsers.length - 1].connect(this.peerUsers[3]);
 			this.peerUsers[this.peerUsers.length - 1].connect(this.peerUsers[4]);
 
-			this.peerUsers[this.peerUsers.length - 1].updatePeer(this.peerUsers[this.peerUsers.length - 2]);
-
-			this.peerUsers[3].connect(this.peerUsers[this.peerUsers.length - 1]);
-			this.peerUsers[4].connect(this.peerUsers[this.peerUsers.length - 1]);
-
 			if (this.count > 10) {
 				this.peerUsers[this.peerUsers.length - 1].connect(this.peerUsers[5]);
-				this.peerUsers[5].connect(this.peerUsers[this.peerUsers.length - 1]);
 				this.mapping[this.peerUsers[5].id] = this.peerUsers[5].peerUsers;
 			} else {
 				this.peerUsers[this.peerUsers.length - 1].connect(this.peerUsers[0]);
-				this.peerUsers[0].connect(this.peerUsers[this.peerUsers.length - 1]);
 			}
 
-			this.mapping[this.peerUsers[0].id] = this.peerUsers[0].peerUsers;
-			this.mapping[this.peerUsers[1].id] = this.peerUsers[1].peerUsers;
-			this.mapping[this.peerUsers[2].id] = this.peerUsers[2].peerUsers;
-			this.mapping[this.peerUsers[3].id] = this.peerUsers[3].peerUsers;
-			this.mapping[this.peerUsers[4].id] = this.peerUsers[4].peerUsers;
+			for (var i = 0; i < 5; i++) {
+				this.mapping[this.peerUsers[i].id] = this.peerUsers[i].peerUsers;
+			}
+
 			this.mapping[this.peerUsers[this.peerUsers.length - 2].id] = this.peerUsers[this.peerUsers.length - 2].peerUsers;
 			this.mapping[this.peerUsers[this.peerUsers.length - 1].id] = this.peerUsers[this.peerUsers.length - 1].peerUsers;
 		} else if (divisor === 2) {
 			this.peerUsers[this.peerUsers.length - 3].disconnect();
-			this.peerUsers[2].disconnect();
 			this.peerUsers[this.peerUsers.length - 3].updatePeer(this.peerUsers[this.peerUsers.length - 1]);
 
 			this.peerUsers[this.peerUsers.length - 2].disconnect();
 			this.peerUsers[this.peerUsers.length - 2].updatePeer(this.peerUsers[this.peerUsers.length - 1]);
 
-			this.peerUsers[this.peerUsers.length - 1].updatePeer(this.peerUsers[this.peerUsers.length - 3]);
-			this.peerUsers[this.peerUsers.length - 1].updatePeer(this.peerUsers[this.peerUsers.length - 2]);
-
-			if (this.count > 10) {
-				this.peerUsers[5].disconnect();
-			} else {
-				this.peerUsers[0].disconnect();
-			}
-
 			this.peerUsers[this.peerUsers.length - 1].connect(this.peerUsers[2]);
-			this.peerUsers[2].connect(this.peerUsers[this.peerUsers.length - 1]);
 
 			if (this.count > 10) {
 				this.peerUsers[this.peerUsers.length - 1].connect(this.peerUsers[5]);
-				this.peerUsers[5].connect(this.peerUsers[this.peerUsers.length - 1]);
 				this.mapping[this.peerUsers[5].id] = this.peerUsers[5].peerUsers;
-				this.peerUsers[this.peerUsers.length - 1].connect(this.peerUsers[0]);
-
+			} else {
 				this.peerUsers[0].connect(this.peerUsers[this.peerUsers.length - 1]);
 				this.mapping[this.peerUsers[0].id] = this.peerUsers[0].peerUsers;
 			}
 
 			this.mapping[this.peerUsers[2].id] = this.peerUsers[2].peerUsers;
+
+
 			this.mapping[this.peerUsers[this.peerUsers.length - 3].id] = this.peerUsers[this.peerUsers.length - 3].peerUsers;
 			this.mapping[this.peerUsers[this.peerUsers.length - 2].id] = this.peerUsers[this.peerUsers.length - 2].peerUsers;
 			this.mapping[this.peerUsers[this.peerUsers.length - 1].id] = this.peerUsers[this.peerUsers.length - 1].peerUsers;
 		} else if (divisor === 3) {
-			this.peerUsers[this.peerUsers.length - 4].disconnect();
-			this.peerUsers[1].disconnect();
-			this.peerUsers[this.peerUsers.length - 4].updatePeer(this.peerUsers[this.peerUsers.length - 1]);
-
-			this.peerUsers[this.peerUsers.length - 3].disconnect();
-			this.peerUsers[4].disconnect();
-			this.peerUsers[this.peerUsers.length - 3].updatePeer(this.peerUsers[this.peerUsers.length - 1]);
-
-			this.peerUsers[this.peerUsers.length - 2].disconnect();
-			if (this.count > 10) {
-				this.peerUsers[5].disconnect();
-				this.mapping[this.peerUsers[5].id] = this.peerUsers[5].peerUsers;
-			} else {
-				this.peerUsers[0].disconnect();
-				this.mapping[this.peerUsers[0].id] = this.peerUsers[0].peerUsers;
+			for (var i = 4; i >= 2; i--) {
+				this.peerUsers[this.peerUsers.length - i].disconnect();
+				this.peerUsers[this.peerUsers.length - i].updatePeer(this.peerUsers[this.peerUsers.length - 1]);
+				this.mapping[this.peerUsers[this.peerUsers.length - i].id] = this.peerUsers[this.peerUsers.length - i].peerUsers;
 			}
-			this.peerUsers[this.peerUsers.length - 3].updatePeer(this.peerUsers[this.peerUsers.length - 1]);
 
-			this.peerUsers[this.peerUsers.length - 1].updatePeer(this.peerUsers[this.peerUsers.length - 2]);
-			this.peerUsers[this.peerUsers.length - 1].updatePeer(this.peerUsers[this.peerUsers.length - 3]);
-			this.peerUsers[this.peerUsers.length - 1].updatePeer(this.peerUsers[this.peerUsers.length - 4]);
 			this.peerUsers[this.peerUsers.length - 1].connect(this.peerUsers[1]);
-			this.peerUsers[1].connect(this.peerUsers[this.peerUsers.length - 1]);
 
-			this.mapping[this.peerUsers[1].id] = this.peerUsers[1].peerUsers;
+			if (this.count > 10) {
+				this.mapping[this.peerUsers[5].id] = this.peerUsers[5].peerUsers;
+			}
+			
+			for (var i = 0; i < 5; i++) {
+				this.mapping[this.peerUsers[i].id] = this.peerUsers[i].peerUsers;
+			}
 
-			this.mapping[this.peerUsers[this.peerUsers.length - 4].id] = this.peerUsers[this.peerUsers.length - 4].peerUsers;
-			this.mapping[this.peerUsers[this.peerUsers.length - 3].id] = this.peerUsers[this.peerUsers.length - 3].peerUsers;
-			this.mapping[this.peerUsers[this.peerUsers.length - 2].id] = this.peerUsers[this.peerUsers.length - 2].peerUsers;
 			this.mapping[this.peerUsers[this.peerUsers.length - 1].id] = this.peerUsers[this.peerUsers.length - 1].peerUsers;
 		} else if (divisor == 4) {
-			this.peerUsers[this.peerUsers.length - 5].disconnect();
-			this.peerUsers[this.peerUsers.length - 4].disconnect();
-			this.peerUsers[this.peerUsers.length - 3].disconnect();
-			this.peerUsers[this.peerUsers.length - 2].disconnect();
-			this.peerUsers[0].disconnect();
-			this.peerUsers[1].disconnect();
-			this.peerUsers[2].disconnect();
-			this.peerUsers[3].disconnect();
+			for (var i = 5; i >= 2; i--) {
+				this.peerUsers[this.peerUsers.length - i].disconnect();
+				this.peerUsers[this.peerUsers.length - i].updatePeer(this.peerUsers[this.peerUsers.length - 1]);
+				this.mapping[this.peerUsers[this.peerUsers.length - i].id] = this.peerUsers[this.peerUsers.length - i].peerUsers;
+			}
+			
+			for (var i = 0; i < 4; i++) {
+				this.mapping[this.peerUsers[i].id] = this.peerUsers[i].peerUsers;
+			}
 
-			this.peerUsers[this.peerUsers.length - 5].updatePeer(this.peerUsers[this.peerUsers.length - 1]);
-			this.peerUsers[this.peerUsers.length - 4].updatePeer(this.peerUsers[this.peerUsers.length - 1]);
-			this.peerUsers[this.peerUsers.length - 3].updatePeer(this.peerUsers[this.peerUsers.length - 1]);
-			this.peerUsers[this.peerUsers.length - 2].updatePeer(this.peerUsers[this.peerUsers.length - 1]);
-
-			this.peerUsers[this.peerUsers.length - 1].updatePeer(this.peerUsers[this.peerUsers.length - 5]);
-			this.peerUsers[this.peerUsers.length - 1].updatePeer(this.peerUsers[this.peerUsers.length - 4]);
-			this.peerUsers[this.peerUsers.length - 1].updatePeer(this.peerUsers[this.peerUsers.length - 3]);
-			this.peerUsers[this.peerUsers.length - 1].updatePeer(this.peerUsers[this.peerUsers.length - 2]);
-
-			this.mapping[this.peerUsers[0].id] = this.peerUsers[0].peerUsers;
-			this.mapping[this.peerUsers[1].id] = this.peerUsers[1].peerUsers;
-			this.mapping[this.peerUsers[2].id] = this.peerUsers[2].peerUsers;
-			this.mapping[this.peerUsers[3].id] = this.peerUsers[3].peerUsers;
-
-			this.mapping[this.peerUsers[this.peerUsers.length - 5].id] = this.peerUsers[this.peerUsers.length - 5].peerUsers;
-			this.mapping[this.peerUsers[this.peerUsers.length - 4].id] = this.peerUsers[this.peerUsers.length - 4].peerUsers;
-			this.mapping[this.peerUsers[this.peerUsers.length - 3].id] = this.peerUsers[this.peerUsers.length - 3].peerUsers;
-			this.mapping[this.peerUsers[this.peerUsers.length - 2].id] = this.peerUsers[this.peerUsers.length - 2].peerUsers;
 			this.mapping[this.peerUsers[this.peerUsers.length - 1].id] = this.peerUsers[this.peerUsers.length - 1].peerUsers;
 		}
 		this.count++;
@@ -189,152 +152,74 @@ class Classify {
 	updateOriginal = () => {
 		if (this.count % 5 == 0) {
 			for (var i = 0; i < this.peerUsers.length; i++) {
-				if (this.count % 5 == 0) {
-					this.peerUsers[i].connect(this.peerUsers[i + 1]);
-					this.peerUsers[i].connect(this.peerUsers[i + 2]);
-					this.peerUsers[i].connect(this.peerUsers[i + 3]);
-					this.peerUsers[i].connect(this.peerUsers[i + 4]);
-				} else if (this.count % 5 == 1) {
-					this.peerUsers[i].connect(this.peerUsers[i - 1]);
-					this.peerUsers[i].connect(this.peerUsers[i + 1]);
-					this.peerUsers[i].connect(this.peerUsers[i + 2]);
-					this.peerUsers[i].connect(this.peerUsers[i + 3]);
-				} else if (this.count % 5 == 2) {
-					this.peerUsers[i].connect(this.peerUsers[i - 2]);
-					this.peerUsers[i].connect(this.peerUsers[i - 1]);
-					this.peerUsers[i].connect(this.peerUsers[i + 1]);
-					this.peerUsers[i].connect(this.peerUsers[i + 2]);
-				} else if (this.count % 5 == 3) {
-					this.peerUsers[i].connect(this.peerUsers[i - 3]);
-					this.peerUsers[i].connect(this.peerUsers[i - 2]);
-					this.peerUsers[i].connect(this.peerUsers[i - 1]);
-					this.peerUsers[i].connect(this.peerUsers[i + 1]);
-				} else if (this.count % 5 == 4) {
-					this.peerUsers[i].connect(this.peerUsers[i - 4]);
-					this.peerUsers[i].connect(this.peerUsers[i - 3]);
-					this.peerUsers[i].connect(this.peerUsers[i - 2]);
-					this.peerUsers[i].connect(this.peerUsers[i - 1]);
+				for (var j = 1; j <= 4 - i%5; j++) {
+					this.peerUsers[i].connect(this.peerUsers[i + j]);
 				}
 			}
 		} else {
 			const loop = this.count / 5;
+			const remainder = this.count % 5;
 			for (var i = 0; i < loop * 5; i++) {
-				if (this.count % 5 == 0) {
-					this.peerUsers[i].connect(this.peerUsers[i + 1]);
-					this.peerUsers[i].connect(this.peerUsers[i + 2]);
-					this.peerUsers[i].connect(this.peerUsers[i + 3]);
-					this.peerUsers[i].connect(this.peerUsers[i + 4]);
-				} else if (this.count % 5 == 1) {
-					this.peerUsers[i].connect(this.peerUsers[i - 1]);
-					this.peerUsers[i].connect(this.peerUsers[i + 1]);
-					this.peerUsers[i].connect(this.peerUsers[i + 2]);
-					this.peerUsers[i].connect(this.peerUsers[i + 3]);
-				} else if (this.count % 5 == 2) {
-					this.peerUsers[i].connect(this.peerUsers[i - 2]);
-					this.peerUsers[i].connect(this.peerUsers[i - 1]);
-					this.peerUsers[i].connect(this.peerUsers[i + 1]);
-					this.peerUsers[i].connect(this.peerUsers[i + 2]);
-				} else if (this.count % 5 == 3) {
-					this.peerUsers[i].connect(this.peerUsers[i - 3]);
-					this.peerUsers[i].connect(this.peerUsers[i - 2]);
-					this.peerUsers[i].connect(this.peerUsers[i - 1]);
-					this.peerUsers[i].connect(this.peerUsers[i + 1]);
-				} else if (this.count % 5 == 4) {
-					this.peerUsers[i].connect(this.peerUsers[i - 4]);
-					this.peerUsers[i].connect(this.peerUsers[i - 3]);
-					this.peerUsers[i].connect(this.peerUsers[i - 2]);
-					this.peerUsers[i].connect(this.peerUsers[i - 1]);
+				for (var j = 1; j <= 4 - i%5; j++) {
+					this.peerUsers[i].connect(this.peerUsers[i + j]);
 				}
 			}
 
-			if (this.count % 5 == 1) {
-				this.peerUsers[loop * 5].connect(this.peerUsers[0]);
-				this.peerUsers[loop * 5].connect(this.peerUsers[1]);
-				this.peerUsers[loop * 5].connect(this.peerUsers[2]);
-				this.peerUsers[loop * 5].connect(this.peerUsers[3]);
+			if (remainder == 1) {
+				for (var i = 0; i <= 3; i++) {
+					this.peerUsers[i].connect(this.peerUsers[loop * 5]);
+				}
 
-				this.peerUsers[0].connect(this.peerUsers[loop * 5]);
-				this.peerUsers[1].connect(this.peerUsers[loop * 5]);
-				this.peerUsers[2].connect(this.peerUsers[loop * 5]);
-				this.peerUsers[3].connect(this.peerUsers[loop * 5]);
-			} else if (this.count % 5 == 2) {
+			} else if (remainder == 2) {
 				this.peerUsers[loop * 5].updatePeer(this.peerUsers[loop * 5 + 1]);
-				this.peerUsers[loop * 5 + 1].updatePeer(this.peerUsers[loop * 5]);
 
 				this.peerUsers[loop * 5].connect(this.peerUsers[0]);
 				this.peerUsers[loop * 5].connect(this.peerUsers[1]);
 				this.peerUsers[loop * 5].connect(this.peerUsers[2]);
-
-				this.peerUsers[0].connect(this.peerUsers[loop * 5]);
-				this.peerUsers[1].connect(this.peerUsers[loop * 5]);
-				this.peerUsers[2].connect(this.peerUsers[loop * 5]);
 
 				this.peerUsers[loop * 5 + 1].connect(this.peerUsers[3]);
 				this.peerUsers[loop * 5 + 1].connect(this.peerUsers[4]);
-				this.peerUsers[3].connect(this.peerUsers[loop * 5 + 1]);
-				this.peerUsers[4].connect(this.peerUsers[loop * 5 + 1]);
+				
 				if (this.count > 10) {
 					this.peerUsers[loop * 5 + 1].connect(this.peerUsers[5]);
-					this.peerUsers[5].connect(this.peerUsers[loop * 5 + 1]);
 				} else {
 					this.peerUsers[loop * 5 + 1].connect(this.peerUsers[0]);
-					this.peerUsers[0].connect(this.peerUsers[loop * 5 + 1]);
 				}
-			} else if (this.count % 5 == 3) {
+			} else if (remainder == 3) {
 				this.peerUsers[loop * 5].updatePeer(this.peerUsers[loop * 5 + 1]);
 				this.peerUsers[loop * 5].updatePeer(this.peerUsers[loop * 5 + 2]);
+				this.peerUsers[loop * 5 + 1].updatePeer(this.peerUsers[loop * 5 + 2]);
+
+
 				this.peerUsers[loop * 5].connect(this.peerUsers[0]);
 				this.peerUsers[loop * 5].connect(this.peerUsers[1]);
 
-				this.peerUsers[0].connect(this.peerUsers[loop * 5]);
-				this.peerUsers[1].connect(this.peerUsers[loop * 5]);
-
-				this.peerUsers[loop * 5 + 1].updatePeer(this.peerUsers[loop * 5]);
-				this.peerUsers[loop * 5 + 1].updatePeer(this.peerUsers[loop * 5 + 2]);
-				this.peerUsers[loop * 5 + 1].connect(this.peerUsers[2]);
 				this.peerUsers[loop * 5 + 1].connect(this.peerUsers[3]);
+				this.peerUsers[loop * 5 + 1].connect(this.peerUsers[4]);
 
-				this.peerUsers[2].connect(this.peerUsers[loop * 5 + 1]);
-				this.peerUsers[3].connect(this.peerUsers[loop * 5 + 1]);
-
-				this.peerUsers[loop * 5 + 2].updatePeer(this.peerUsers[loop * 5]);
-				this.peerUsers[loop * 5 + 2].updatePeer(this.peerUsers[loop * 5 + 1]);
-				this.peerUsers[loop * 5 + 2].connect(this.peerUsers[4]);
-				if (this.count > 10) {
-					this.peerUsers[loop * 5 + 2].connect(this.peerUsers[5]);
-					this.peerUsers[5].connect(this.peerUsers[loop * 5 + 2]);
-				} else {
-					this.peerUsers[loop * 5 + 2].connect(this.peerUsers[0]);
-					this.peerUsers[0].connect(this.peerUsers[loop * 5 + 2]);
-				}
-			} else if (this.count % 5 == 4) {
-				this.peerUsers[loop * 5].updatePeer(this.peerUsers[loop * 5 + 1]);
-				this.peerUsers[loop * 5].updatePeer(this.peerUsers[loop * 5 + 2]);
-				this.peerUsers[loop * 5].updatePeer(this.peerUsers[loop * 5 + 3]);
-				this.peerUsers[loop * 5].connect(this.peerUsers[0]);
-
-				this.peerUsers[0].connect(this.peerUsers[loop * 5]);
-
-				this.peerUsers[loop * 5 + 1].updatePeer(this.peerUsers[loop * 5]);
-				this.peerUsers[loop * 5 + 1].updatePeer(this.peerUsers[loop * 5 + 2]);
-				this.peerUsers[loop * 5 + 1].updatePeer(this.peerUsers[loop * 5 + 3]);
-				this.peerUsers[loop * 5 + 1].connect(this.peerUsers[1]);
-
-				this.peerUsers[1].connect(this.peerUsers[loop * 5 + 1]);
-
-				this.peerUsers[loop * 5 + 2].updatePeer(this.peerUsers[loop * 5]);
-				this.peerUsers[loop * 5 + 2].updatePeer(this.peerUsers[loop * 5 + 1]);
-				this.peerUsers[loop * 5 + 2].updatePeer(this.peerUsers[loop * 5 + 3]);
 				this.peerUsers[loop * 5 + 2].connect(this.peerUsers[2]);
 
-				this.peerUsers[2].connect(this.peerUsers[loop * 5 + 2]);
+				if (this.count > 10) {
+					this.peerUsers[loop * 5 + 2].connect(this.peerUsers[5]);
+				} else {
+					this.peerUsers[loop * 5 + 2].connect(this.peerUsers[0]);
+				}
+			} else if (remainder == 4) {
 
-				this.peerUsers[loop * 5 + 3].updatePeer(this.peerUsers[loop * 5]);
-				this.peerUsers[loop * 5 + 3].updatePeer(this.peerUsers[loop * 5 + 2]);
-				this.peerUsers[loop * 5 + 3].updatePeer(this.peerUsers[loop * 5 + 1]);
-				this.peerUsers[loop * 5 + 3].connect(this.peerUsers[3]);
+				for (var i = 0; i < 3; i++) {
+					for (var j = i + 1; j <= 3; j++) {
+						this.peerUsers[loop * 5 + i].updatePeer(this.peerUsers[loop * 5 + j]);
+					}
+				}
 
-				this.peerUsers[3].connect(this.peerUsers[loop * 5 + 3]);
+				this.peerUsers[loop * 5].connect(this.peerUsers[0]);
+
+				this.peerUsers[loop * 5 + 1].connect(this.peerUsers[3]);
+
+				this.peerUsers[loop * 5 + 2].connect(this.peerUsers[2]);
+
+				this.peerUsers[loop * 5 + 3].connect(this.peerUsers[1]);
+
 			}
 		}
 	};
