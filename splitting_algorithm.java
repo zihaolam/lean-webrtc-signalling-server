@@ -18,8 +18,10 @@ class IDObject {
 
     //connect to a specified user
     public void connect(IDObject n, boolean initiator) { 
-        connectionList.add(n);
-        n.connectionList.add(this);
+        if (true) {
+            connectionList.add(n);
+            n.connectionList.add(this);
+        }
     }
 
     //connect to a specified user with specific order in the array for rotational purposes
@@ -30,12 +32,13 @@ class IDObject {
 
     //disconnect from the most recently connected user
     public void disconnect() {
-        connectionList.remove(connectionList.size() - 1).connectionList.remove(this);
+        IDObject toRemove = connectionList.get(connectionList.size() - 1);
+        disconnect(toRemove);
     }
 
     // disconnect function with a specific user
     public void disconnect(IDObject n) {
-        connectionList.remove(n);
+        this.connectionList.remove(n);
         n.connectionList.remove(this);
     }
 
@@ -251,8 +254,8 @@ class Classify {
                 IDObject connected = n.connectionList.get(i);
                 n.disconnect(connected);
                 mapping.put(connected, connected.connectionList);
-            }
-        } 
+            } //ok
+        }
         else {
             if (count % 5 == 0) {
                 if (id.indexOf(n) >= count - 5) {
@@ -261,10 +264,11 @@ class Classify {
                     order[2] = 3;
                     order[1] = 2;
                     order[0] = 1;
-                    for (int i = n.connectionList.size(); i >= 0; i--) {
-                        n.connectionList.get(i).connect(id.get(order[n.connectionList.size() - i]), true);
-                        mapping.put(n.connectionList.get(i), n.connectionList.get(i).connectionList);
+                    for (int i = n.connectionList.size() - 1; i >= 0; i--) {
+                        IDObject connected = n.connectionList.get(i);
+                        connected.connect(id.get(order[4 - i]), true); //connect to the according users for rotation
                         n.disconnect(n.connectionList.get(i));
+                        mapping.put(connected, connected.connectionList); //mapping update
                     }
                 } 
                 else {
@@ -274,6 +278,8 @@ class Classify {
                         mapping.put(connected, connected.connectionList);
                     }
 
+                    id.add(id.indexOf((n)), id.get(id.size() - 1)); //move most recently connected user to the partial group to fulfill it
+
                     for (int i  = n.connectionList.size() - 1; i >= 0; i--) {
                         IDObject connected = n.connectionList.get(i);
                         connected.connect(id.get(id.size() - 1), true);
@@ -281,12 +287,7 @@ class Classify {
                     }
 
                     mapping.put(id.get(id.size() - 1), id.get(id.size() - 1).connectionList);
-                    if (id.indexOf(n) % 5 == 4) {
-                        id.add(id.indexOf((n)), id.get(id.size() - 1));
-                    } else {
-                        id.add(id.indexOf(n) + 4 - id.indexOf(n) % 5, id.get(id.size() - 1));
-                    }
-                    id.add(id.indexOf((n)), id.get(id.size() - 1));
+                
                     id.remove(id.size() - 1);
                 }
             } 
@@ -305,28 +306,28 @@ class Classify {
                         mapping.put(connected, connected.connectionList);
                     }
 
+                    id.add(id.indexOf(n) + 4 - id.indexOf(n) % 5 + 1, id.get(id.size() - 1));
+
                     for (int i  = n.connectionList.size() - 1; i >= 0; i--) {
                         IDObject connected = n.connectionList.get(i);
+                        n.disconnect(connected);
                         connected.connect(id.get(id.size() - 1), true);
                         mapping.put(connected, connected.connectionList);
                     }
 
                     mapping.put(id.get(id.size() - 1), id.get(id.size() - 1).connectionList);
-                    if (id.indexOf(n) % 5 == 4) {
-                        id.add(id.indexOf((n)), id.get(id.size() - 1));
-                    } else {
-                        id.add(id.indexOf(n) + 4 - id.indexOf(n) % 5, id.get(id.size() - 1));
-                    }
+                    
                     id.remove(id.size() - 1);
                 }
             } 
             else if (count % 5 == 2) {
-                if (id.indexOf(n) >= count - 2) {
+                if (id.indexOf(n) == count - 2) {
                     n.connectionList.get(0).connect(id.get(3), true);
                     n.disconnect(n.connectionList.get(0));
-                    for (int i = 0; i < n.connectionList.size(); i++) {
-                        n.disconnect(id.get(i));
-                        mapping.put(id.get(i), id.get(i).connectionList);
+                    for (int i = n.connectionList.size() - 1; i >= 0; i--) {
+                        IDObject connected = id.get(i);
+                        n.disconnect(connected);
+                        mapping.put(connected, connected.connectionList);
                     }
                 } 
                 else {
@@ -335,6 +336,8 @@ class Classify {
                         connected.disconnect(id.get(id.size() - 1));
                         mapping.put(connected, connected.connectionList);
                     }
+
+                    id.add(id.indexOf(n) + 4 - id.indexOf(n) % 5 + 1, id.get(id.size() - 1));
 
                     id.get(id.size() - 2).connect(id.get(3), true);
 
@@ -346,11 +349,7 @@ class Classify {
                     }
 
                     mapping.put(id.get(id.size() - 1), id.get(id.size() - 1).connectionList);
-                    if (id.indexOf(n) % 5 == 4) {
-                        id.add(id.indexOf((n)), id.get(id.size() - 1));
-                    } else {
-                        id.add(id.indexOf(n) + 4 - id.indexOf(n) % 5, id.get(id.size() - 1));
-                    }
+                    
                     id.remove(id.size() - 1);
                 }
 
@@ -361,12 +360,15 @@ class Classify {
                     for (int i = n.connectionList.size() - 1; i>=0; i--) {
                         IDObject connected = n.connectionList.get(i);
                         n.disconnect(connected);
+                        mapping.put(connected, connected.connectionList);
                     }
 
                     if (count > 10) {
                         id.get(count - 2).connect(id.get(5), true); //4,5,6
+                        mapping.put(id.get(5), id.get(5).connectionList);
                     } else {
                         id.get(count - 2).connect(id.get(0), true); //4,5,1
+                        mapping.put(id.get(0), id.get(0).connectionList);
                     } 
 
                     id.get(count - 1).disconnect();
@@ -374,6 +376,7 @@ class Classify {
 
                     for (int i = 0; i <= 2; i++) {
                         id.get(count - 1).connect(id.get(i), true); //1,2,3
+                        mapping.put(id.get(i), id.get(i).connectionList);
                     }
 
                     mapping.put(id.get(count - 2), id.get(count - 2).connectionList);
@@ -386,9 +389,11 @@ class Classify {
                     for (int i = n.connectionList.size() - 1; i>=0; i--) {
                         IDObject connected = n.connectionList.get(i);
                         n.disconnect(connected);
+                        mapping.put(connected, connected.connectionList);
                     }
                     
                     id.get(count - 3).connect(id.get(2), true); //1,2,3
+                    mapping.put(id.get(2), id.get(2).connectionList);
 
                     id.get(count - 1).disconnect();
                     id.get(count - 1).disconnect();
@@ -411,6 +416,7 @@ class Classify {
                     for (int i = n.connectionList.size() - 1; i>=0; i--) {
                         IDObject connected = n.connectionList.get(i);
                         n.disconnect(connected);
+                        mapping.put(connected, connected.connectionList);
                     }
                     id.get(count - 3).connect(id.get(2), true);//1,2,3
 
@@ -428,7 +434,10 @@ class Classify {
                     for (int i  = id.get(id.size() - 1).connectionList.size() - 1; i >= 0; i--) {
                         IDObject connected = id.get(id.size() - 1).connectionList.get(i);
                         connected.disconnect(id.get(id.size() - 1));
+                        mapping.put(connected, connected.connectionList);
                     }
+
+                    id.add(id.indexOf(n) + 4 - id.indexOf(n) % 5 + 1, id.get(id.size() - 1));
 
                     id.get(id.size() - 3).connect(id.get(2), true); //1,2,3
 
@@ -437,42 +446,35 @@ class Classify {
                     else
                         id.get(id.size() - 2).connect(id.get(0), true); //4,5,1
 
-                    
-
-                        for (int i = n.connectionList.size() - 1; i >= 0; i--) {
+                    for (int i = n.connectionList.size() - 1; i >= 0; i--) {
                             IDObject connected = n.connectionList.get(i);
                             n.disconnect(connected);
                             connected.connectUpdate(id.get(id.size() - 1));
                             mapping.put(connected, connected.connectionList);
-                        }
+                    }
 
                     mapping.put(id.get(id.size() - 3), id.get(id.size() - 3).connectionList);
                     mapping.put(id.get(id.size() - 2), id.get(id.size() - 2).connectionList);
                     mapping.put(id.get(id.size() - 1), id.get(id.size() - 1).connectionList);
 
-                    if (id.indexOf(n) % 5 == 4) {
-                        id.add(id.indexOf((n)), id.get(id.size() - 1));
-                    } 
-                    else {
-                        id.add(id.indexOf(n) + 4 - id.indexOf(n) % 5, id.get(id.size() - 1));
-                    }
                     id.remove(id.size() - 1);
                 }
             } 
             else {
-                //reorganization of members order needed
                 if (id.indexOf(n) == count - 4) {
-                    for (int i = n.connectionList.size() - 1; i >=0; i--) {
+                    for (int i = n.connectionList.size() - 1; i >= 0; i--) {
                         n.disconnect();
                     }
 
                     id.get(id.size() - 3).connect(id.get(4), true); //4,5
+                    mapping.put(id.get(4), id.get(4).connectionList);
 
-                    if (count >= 10)
+                    if (count >= 10) {
                         id.get(id.size() - 2).connect(id.get(5), true, id.get(id.size() - 1).connectionList.size() - 1); //3,6
-                    else
+                    }
+                    else {
                         id.get(id.size() - 2).connect(id.get(0), true, id.get(id.size() - 1).connectionList.size() - 1); //3,1
-
+                    }
                     id.get(id.size() - 1).disconnect();
 
                     id.get(id.size() - 1).connect(id.get(0), true);
@@ -542,6 +544,8 @@ class Classify {
                         id.get(id.size() - 1).disconnect();
                     }
 
+                    id.add(id.indexOf(n) + 4 - id.indexOf(n) % 5 + 1, id.get(id.size() - 1));
+
                     id.get(id.size() - 4).connect(id.get(1), true);
                     id.get(id.size() - 3).connect(id.get(4), true);
 
@@ -550,25 +554,24 @@ class Classify {
                     else
                         id.get(id.size() - 2).connect(id.get(0), true);
 
-                    int rm_size = n.connectionList.size();
-                    for (int i = rm_size - 1; i >=0; i--) {
-                        n.connectionList.get(i).connect(id.get(id.size() - 1), true);
-                        n.disconnect();
+                    for (int i = n.connectionList.size() - 1; i >= 0; i--) {
+                        IDObject connected = n.connectionList.get(i);
+                        n.disconnect(connected);
+                        connected.connectUpdate(id.get(id.size() - 1));
+                        mapping.put(connected, connected.connectionList);
                     }
 
                     for (int i = 1; i <= 4; i++) {
                         mapping.put(id.get(id.size() - i), id.get(id.size() - i).connectionList);
                     }
                     
-                    if (id.indexOf(n) % 5 == 4) {
-                        id.add(id.indexOf((n)), id.get(id.size() - 1));
-                    } 
                     
-                    else {
-                        id.add(id.indexOf(n) + 4 - id.indexOf(n) % 5, id.get(id.size() - 1));
-                    }
 
                     id.remove(id.size() - 1);
+                }
+
+                for (int i = 0; i <= 5; i++) {
+                    this.mapping.put(id.get(i), id.get(i).connectionList);
                 }
             }
             this.id.remove(n);
@@ -580,32 +583,31 @@ class Classify {
 public class splitting_algorithm {
     public static void main(String[] args) {
         List<IDObject> id = new ArrayList<>();
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 10; i++) {
             id.add(new IDObject(i));
         }
-        IDObject a = new IDObject(50);
-        IDObject b = new IDObject(51);
-        IDObject c = new IDObject(52);
-        IDObject d = new IDObject(53);
+        IDObject first = new IDObject(10);
+        IDObject second = new IDObject(11);
+        IDObject third = new IDObject(12);
+        IDObject fourth = new IDObject(13);
 
         Classify cl = new Classify(id);
-        cl.update(a, true);
-        cl.update(b, true);
-        cl.update(c, true);
-        cl.update(d, true);
 
-        cl.leave(a);
-        //cl.update(new IDObject(54), true);
+        cl.update(first, true);
+        cl.update(second, true);
+        cl.update(third, true);
+        cl.update(fourth, true);
 
-        cl.leave(b);
+        cl.leave(cl.id.get(7));
 
-        //cl.update(new IDObject(54), true);
-        List<IDObject> test = cl.mapping.get(cl.id.get(51));
-        for (int i = 0; i < test.size(); i++) {
-            int x = test.get(i).id;
-            System.out.println(x);
+
+        for (int i = 0; i < cl.id.size(); i++) {
+            System.out.println(i + ": ");
+            List<IDObject> test = cl.id.get(i).connectionList;
+            for (int j = 0; j < cl.id.get(i).connectionList.size(); j++) {
+                System.out.print(test.get(j).id + ", ");
+            }
+            System.out.println();
         }
-    
-    
     }
 }
