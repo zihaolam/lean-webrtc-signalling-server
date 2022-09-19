@@ -68,6 +68,16 @@ class Classify {
     public void update(IDObject n, boolean initiator) {
         id.add(n); //add users to the data
 
+        if (count < 5) {
+            for (int i = 0; i < id.size(); i++) {
+                n.connectUpdate(id.get(i));
+                this.mapping.put(id.get(i), id.get(i).connectionList);
+            }
+            this.mapping.put(n, n.connectionList);
+            count++;
+            return;
+        }
+
         if (count % 5 == 0) { // when the room is fully connected
 
             //connect the new user to all users from id 1 through 4
@@ -163,7 +173,14 @@ class Classify {
     }
 
     public void updateOriginal() {
-        if (count % 5 == 0) {
+        if (count < 5) {
+            for (int i = 0; i < id.size() - 1; i++) {
+                for (int j = 1; j <= id.size() - 1 - i%5; j++) {
+                    id.get(i).connectUpdate(id.get(i + j));
+                }
+            }
+        }
+        else if (count % 5 == 0) {
             for (int i = 0; i < id.size(); i ++) {
                 for (int j = 1; j <= 4 - i%5; j++) {
                     id.get(i).connectUpdate(id.get(i + j));

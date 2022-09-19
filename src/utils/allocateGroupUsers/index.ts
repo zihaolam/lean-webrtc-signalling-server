@@ -466,12 +466,17 @@ class Classify {
 		this.peerUsers.push(user);
 
 		const divisor = this.count % 5;
-
-		if (divisor === 0) {
+		if (this.count < 5) {
+			for (let i = 0; i < this.peerUsers.length; i++) {
+				user.connect(this.peerUsers[i], true);
+				this.mapping[this.peerUsers[i].id] = this.peerUsers[i].peerUsers;
+			}
+			this.mapping[user.id] = user.peerUsers;
+		} else if (divisor === 0) {
 
 			for (var i = 0; i < 5; i++) {
 				this.peerUsers[this.peerUsers.length - 1].connect(this.peerUsers[i], intiate);
-				this.mapping[i] = this.peerUsers[i].peerUsers;
+				this.mapping[this.peerUsers[i].id] = this.peerUsers[i].peerUsers;
 			}
 
 			this.mapping[this.peerUsers.length - 1] = this.peerUsers[this.peerUsers.length - 1].peerUsers;
@@ -553,7 +558,13 @@ class Classify {
 	};
 
 	updateOriginal = () => {
-		if (this.count % 5 == 0) {
+		if (this.count < 5) {
+			for (var i = 0; i < this.peerUsers.length - 1; i++) {
+				for (var j = 1; j <= this.peerUsers.length - 1 - i%5; j++) {
+					this.peerUsers[i].connect(this.peerUsers[i + j], true);
+				}
+			}
+		} else if (this.count % 5 == 0) {
 			for (var i = 0; i < this.peerUsers.length; i++) {
 				for (var j = 1; j <= 4 - i%5; j++) {
 					this.peerUsers[i].connect(this.peerUsers[i + j], true);
