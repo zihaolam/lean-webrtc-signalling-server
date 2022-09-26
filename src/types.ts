@@ -44,6 +44,7 @@ export const eventTypes = {
 	GET_ROOM_DETAILS: "get-room-details",
 	LEAVE_ROOM: "leave-room",
 	USER_UPDATE: "user-update",
+	TOKEN_UPDATE: "token-update",
 };
 
 export const WebRTCAckStatus = {
@@ -70,4 +71,14 @@ export interface JoinRoomError {
 export interface PeerUser extends RoomUser {
 	initiator: boolean;
 	peerId: string;
+}
+
+export interface AuthorizationTokenPayload {
+	exp: number;
+	socketId: string;
+	userId: string;
+}
+
+export interface FocusPredictionPayload {
+	label: number;
 }

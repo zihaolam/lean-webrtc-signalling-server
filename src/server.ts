@@ -7,17 +7,49 @@ import {
 	JoinRoomMessage,
 	WebRTCAckStatus,
 	JoinRoomAcknowledgement,
-	IRoom,
 	RoomDetailsResponse,
 	JoinRoomError,
-	PeerUser,
+	AuthorizationTokenPayload,
+	FocusPredictionPayload,
 } from "./types";
+import Express = require("express");
+import { validateToken } from "./utils/jwt";
+import axios from "axios";
 
-const httpServer = createServer();
+const app = Express();
+const httpServer = createServer(app);
 
 const io = new Server(httpServer);
 
 const rooms = initializeRooms();
+
+// app.use(async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+// 	const bearerToken = req.headers.authorization.replace("Bearer ", "");
+// 	if (bearerToken) return res.status(401).json({ message: "You are not authorized" });
+// 	try {
+// 		const decodedToken = await validateToken(bearerToken);
+// 		res.locals.decodedToken = decodedToken;
+// 		res.locals.bearerToken = bearerToken;
+// 		next();
+// 	} catch {
+// 		return res.status(403).json({ message: "You are not authorized!" });
+// 	}
+// });
+
+app.post("/tokens-update", (req: Express.Request, res: Express.Response) => {
+	// const decodedToken: AuthorizationTokenPayload = res.locals.decodedToken;
+	const socketId = req.body.socketId;
+	const predictedFocus: FocusPredictionPayload = req.body.prediction;
+	var tokenChange = 0;
+	if (predictedFocus.label === 1) tokenChange = 1;
+	io.to(socketId).emit(eventTypes.TOKEN_UPDATE, { status: WebRTCAckStatus.SUCCESS, data: { tokenChange } });
+	axios.post(
+		"https://jd5hwpred3.execute-api.ap-east-1.amazonaws.com/prod/api/update-token",
+		{ tokenChange },
+		{ headers: { Authorization: `Bearer ${res.locals.bearerToken}` } }
+	);
+	res.status(200).send("success");
+});
 
 io.on("connection", (socket: Socket) => {
 	socket.on(
