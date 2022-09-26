@@ -1,83 +1,73 @@
-export interface UWebSocket {
-	id: string;
-	send: (message: string) => void;
-	subscribe: (topicId: string) => void;
-}
-
-export interface UWebSocketApp {
-	publish: (topic: string, message: string) => void;
-}
-
-export enum MESSAGE_TYPES {
-	OFFER,
-	ANSWER,
-	NEW_ICE_CANDIDATE,
-	NEW_USER,
-	JOIN_ROOM,
-	LEFT_ROOM,
-	ROOM_DETAILS,
-	INITIATE_CONNECTION,
-	ROOM_USERS,
-	PEER_SIGNAL,
-}
-
-export interface RoomDetail {
+export interface IRoom {
+	users: Map<string, RoomUser>;
 	roomId: string;
 	roomName: string;
+	roomDescription: string;
+	userCount: number;
+	subRooms: Array<RoomUser[]>;
+
+	addUser: (socketId: string, roomUser: RoomUser) => { subRoom: Map<string, PeerUser[]>; subRoomIndex: number };
+
+	getUser: (socketId: string) => RoomUser;
+
+	deleteUser: (socketId: string, subRoomIndex: number) => Map<string, PeerUser[]>;
+
+	serialize: () => SerializedRoom;
 }
 
-export interface RoomUsers {
-	[roomId: string]: string[];
-}
-
-export interface SocketUserIdMap {
-	[userId: string]: string;
-}
-
-export interface JoinRoomMessagePayload {
-	sender: string;
+export interface SerializedRoom {
+	users: RoomUser[];
 	roomId: string;
+	roomName: string;
+	roomDescription: string;
+	userCount: number;
 }
 
-export type RoomUsersMessagePayload = string[];
-
-export type RoomDetailMessagePayload = RoomDetail[];
-
-export interface RTCOfferPayload {
-	target: string;
-	sender: string;
-	sdp: RTCSessionDescriptionInit | RTCSessionDescription | undefined;
+export interface RoomUser {
+	socketId: string;
+	displayName: string;
 }
 
-export interface ICECandidateSignalPayload {
+export interface PrivateMessage {
+	to: string;
+	data: any;
+}
+
+export interface JoinRoomMessage {
 	roomId: string;
-	sender: string;
-	candidate: RTCIceCandidate;
+	displayName: string;
 }
 
-export interface NewUserMessagePayload {
-	sender: string;
+export const eventTypes = {
+	JOIN_ROOM: "join-room",
+	WEBRTC_SIGNAL: "webrtc-signal",
+	GET_ROOM_DETAILS: "get-room-details",
+	LEAVE_ROOM: "leave-room",
+	USER_UPDATE: "user-update",
+};
+
+export const WebRTCAckStatus = {
+	SUCCESS: 200,
+	ERROR: 200,
+};
+
+export interface RoomDetailsResponse {
+	roomDetails: SerializedRoom[];
+	status: number;
 }
 
-export interface LeaveRoomMessagePayload {
-	sender: string;
+export interface JoinRoomAcknowledgement {
+	status: number;
+	roomDetail: SerializedRoom;
+	subRoomUsers: RoomUser[];
 }
 
-export type WebsocketMessagePayload = NewUserMessagePayload | JoinRoomMessagePayload | ICECandidateSignalPayload | RTCOfferPayload | RoomUsersMessagePayload | RoomDetailMessagePayload;
-
-export interface WebsocketMessage {
-	type: MESSAGE_TYPES;
-	data: WebsocketMessagePayload;
+export interface JoinRoomError {
+	status: number;
+	message: string;
 }
 
-export interface SocketMetadata {
-	userId?: string;
-	roomId?: string;
-}
-
-export interface SocketMap {
-	[socketId: string]: {
-		ws: any;
-		metaData?: SocketMetadata;
-	};
+export interface PeerUser extends RoomUser {
+	initiator: boolean;
+	peerId: string;
 }
