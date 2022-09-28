@@ -23,6 +23,9 @@ const io = new Server(httpServer);
 
 const rooms = initializeRooms();
 
+app.use(Express.json());
+app.use(Express.urlencoded({extended: true}));
+
 // app.use(async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
 // 	const bearerToken = req.headers.authorization.replace("Bearer ", "");
 // 	if (bearerToken) return res.status(401).json({ message: "You are not authorized" });
@@ -38,6 +41,7 @@ const rooms = initializeRooms();
 
 app.post("/tokens-update", (req: Express.Request, res: Express.Response) => {
 	// const decodedToken: AuthorizationTokenPayload = res.locals.decodedToken;
+	console.log(req.body);
 	const socketId = req.body.socketId;
 	const predictedFocus: FocusPredictionPayload = req.body.prediction;
 	var tokenChange = 0;
@@ -47,7 +51,7 @@ app.post("/tokens-update", (req: Express.Request, res: Express.Response) => {
 		"https://jd5hwpred3.execute-api.ap-east-1.amazonaws.com/prod/api/update-token",
 		{ tokenChange },
 		{ headers: { Authorization: `Bearer ${res.locals.bearerToken}` } }
-	);
+	).catch(err => {});
 	res.status(200).send("success");
 });
 
