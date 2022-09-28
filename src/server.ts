@@ -24,7 +24,7 @@ const io = new Server(httpServer);
 const rooms = initializeRooms();
 
 app.use(Express.json());
-app.use(Express.urlencoded({extended: true}));
+app.use(Express.urlencoded({ extended: true }));
 
 // app.use(async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
 // 	const bearerToken = req.headers.authorization.replace("Bearer ", "");
@@ -47,11 +47,13 @@ app.post("/tokens-update", (req: Express.Request, res: Express.Response) => {
 	var tokenChange = 0;
 	if (predictedFocus.label === 1) tokenChange = 1;
 	io.to(socketId).emit(eventTypes.TOKEN_UPDATE, { status: WebRTCAckStatus.SUCCESS, data: { tokenChange } });
-	axios.post(
-		"https://jd5hwpred3.execute-api.ap-east-1.amazonaws.com/prod/api/update-token",
-		{ tokenChange },
-		{ headers: { Authorization: `Bearer ${res.locals.bearerToken}` } }
-	).catch(err => {});
+	axios
+		.post(
+			"https://jd5hwpred3.execute-api.ap-east-1.amazonaws.com/prod/api/update-token",
+			{ tokenChange },
+			{ headers: { Authorization: `Bearer ${res.locals.bearerToken}` } }
+		)
+		.catch((err) => {});
 	res.status(200).send("success");
 });
 
@@ -89,20 +91,22 @@ io.on("connection", (socket: Socket) => {
 		callback({ status: WebRTCAckStatus.SUCCESS, roomDetails: rooms.serialize() });
 	});
 	socket.on(eventTypes.LEAVE_ROOM, ({ roomId }: { roomId: string }) => {
-		const subRoom = rooms.find(roomId)?.deleteUser(socket.id, socket.data.subRoomIndex);
-		if (subRoom !== undefined) {
-			socket.data.roomId = null;
-			socket.data.subRoomIndex = null;
-			for (const socketId of Array.from(subRoom.keys())) {
-				if (socketId === socket.id) continue;
-				socket.to(socketId).emit(eventTypes.USER_UPDATE, {
-					status: WebRTCAckStatus.SUCCESS,
-					roomDetail: rooms.find(roomId)?.serialize(),
-					subRoomUsers: subRoom.get(socketId),
-				});
+		if (socket.data.roomId) {
+			const subRoom = rooms.find(roomId)?.deleteUser(socket.id, socket.data.subRoomIndex);
+			if (subRoom !== undefined) {
+				socket.data.roomId = null;
+				socket.data.subRoomIndex = null;
+				for (const socketId of Array.from(subRoom.keys())) {
+					if (socketId === socket.id) continue;
+					socket.to(socketId).emit(eventTypes.USER_UPDATE, {
+						status: WebRTCAckStatus.SUCCESS,
+						roomDetail: rooms.find(roomId)?.serialize(),
+						subRoomUsers: subRoom.get(socketId),
+					});
+				}
+			} else {
+				console.log("invalid room id or subroom index");
 			}
-		} else {
-			console.log("invalid room id or subroom index");
 		}
 	});
 	socket.on("disconnect", () => {
