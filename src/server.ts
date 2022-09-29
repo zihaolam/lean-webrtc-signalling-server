@@ -38,6 +38,7 @@ app.post("/tokens-update", (req: Express.Request, res: Express.Response) => {
 	// const decodedToken: AuthorizationTokenPayload = res.locals.decodedToken;
 	const body = req.body as FocusPredictionPayload;
 	const { socketId, prediction } = body;
+	console.log(body);
 	const accessToken = req.body.accessToken;
 	var tokenChange = 0;
 	if (prediction === 1) tokenChange = 1;
