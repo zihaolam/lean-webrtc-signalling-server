@@ -35,10 +35,8 @@ app.use(async (req: Express.Request, res: Express.Response, next: Express.NextFu
 });
 
 app.post("/tokens-update", (req: Express.Request, res: Express.Response) => {
-	// const decodedToken: AuthorizationTokenPayload = res.locals.decodedToken;
 	const body = req.body as FocusPredictionPayload;
 	const { socketId, prediction } = body;
-	console.log(body);
 	const accessToken = req.body.accessToken;
 	var tokenChange = 0;
 	if (prediction === 1) tokenChange = 1;
@@ -48,7 +46,7 @@ app.post("/tokens-update", (req: Express.Request, res: Express.Response) => {
 			.post(
 				"https://jd5hwpred3.execute-api.ap-east-1.amazonaws.com/prod/api/update-token",
 				{ tokenChange },
-				{ headers: { "service-token": res.locals.serviceToken, "access-token": accessToken } }
+				{ headers: { "service-token": res.locals.serviceToken, Authorization: `Bearer ${accessToken}` } }
 			)
 			.catch((err) => {});
 	res.status(200).send("success");
