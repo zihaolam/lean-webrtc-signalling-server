@@ -26,34 +26,30 @@ const rooms = initializeRooms();
 app.use(Express.json());
 app.use(Express.urlencoded({ extended: true }));
 
-// app.use(async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
-// 	const bearerToken = req.headers.authorization.replace("Bearer ", "");
-// 	if (bearerToken) return res.status(401).json({ message: "You are not authorized" });
-// 	try {
-// 		const decodedToken = await validateToken(bearerToken);
-// 		res.locals.decodedToken = decodedToken;
-// 		res.locals.bearerToken = bearerToken;
-// 		next();
-// 	} catch {
-// 		return res.status(403).json({ message: "You are not authorized!" });
-// 	}
-// });
+const SERVICE_TOKEN = process.env.serviceToken;
+app.use(async (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+	const serviceToken = req.headers["service-token"] as string;
+	res.locals.serviceToken = serviceToken;
+	if (!serviceToken || serviceToken === SERVICE_TOKEN) return res.status(401).json({ message: "You are not authorized" });
+	return next();
+});
 
 app.post("/tokens-update", (req: Express.Request, res: Express.Response) => {
 	// const decodedToken: AuthorizationTokenPayload = res.locals.decodedToken;
-	console.log(req.body);
-	const socketId = req.body.socketId;
-	const predictedFocus: FocusPredictionPayload = req.body.prediction;
+	const body = req.body as FocusPredictionPayload;
+	const { socketId, prediction } = body;
+	const accessToken = req.body.accessToken;
 	var tokenChange = 0;
-	if (predictedFocus.label === 1) tokenChange = 1;
+	if (prediction === 1) tokenChange = 1;
 	io.to(socketId).emit(eventTypes.TOKEN_UPDATE, { status: WebRTCAckStatus.SUCCESS, data: { tokenChange } });
-	axios
-		.post(
-			"https://jd5hwpred3.execute-api.ap-east-1.amazonaws.com/prod/api/update-token",
-			{ tokenChange },
-			{ headers: { Authorization: `Bearer ${res.locals.bearerToken}` } }
-		)
-		.catch((err) => {});
+	if (accessToken)
+		axios
+			.post(
+				"https://jd5hwpred3.execute-api.ap-east-1.amazonaws.com/prod/api/update-token",
+				{ tokenChange },
+				{ headers: { "service-token": res.locals.serviceToken, "access-token": accessToken } }
+			)
+			.catch((err) => {});
 	res.status(200).send("success");
 });
 

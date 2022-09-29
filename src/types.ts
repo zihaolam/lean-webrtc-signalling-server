@@ -80,5 +80,7 @@ export interface AuthorizationTokenPayload {
 }
 
 export interface FocusPredictionPayload {
-	label: number;
+	prediction: number;
+	socketId: string;
+	accessToken: string;
 }
