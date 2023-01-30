@@ -35,9 +35,9 @@ app.use(async (req: Express.Request, res: Express.Response, next: Express.NextFu
 app.post("/tokens-update", (req: Express.Request, res: Express.Response) => {
 	const body = req.body as FocusPredictionPayload;
 	const { socketId, prediction } = body;
-	const accessToken = req.headers.accessToken;
+	const accessToken = req.headers.['access-token'];
 	var tokenChange = 0;
-	if (prediction === 1) tokenChange = 1;
+	if (prediction === 1) tokenChange = 0.1;
 	io.to(socketId).emit(eventTypes.TOKEN_UPDATE, { status: WebRTCAckStatus.SUCCESS, data: { tokenChange } });
 	if (accessToken)
 		axios
