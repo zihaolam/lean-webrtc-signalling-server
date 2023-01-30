@@ -42,7 +42,7 @@ app.post("/tokens-update", (req: Express.Request, res: Express.Response) => {
 	if (accessToken)
 		axios
 			.post(
-				"https://o30vbc5f6b.execute-api.ap-southeast-1.amazonaws.com/update-token-count",
+				"https://o30vbc5f6b.execute-api.ap-southeast-1.amazonaws.com/user/update-token-count",
 				{ tokenChange },
 				{ headers: { "service-token": res.locals.serviceToken, Authorization: `Bearer ${accessToken}` } }
 			)
