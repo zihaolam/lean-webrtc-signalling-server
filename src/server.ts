@@ -9,11 +9,9 @@ import {
 	JoinRoomAcknowledgement,
 	RoomDetailsResponse,
 	JoinRoomError,
-	AuthorizationTokenPayload,
 	FocusPredictionPayload,
 } from "./types";
 import Express = require("express");
-import { validateToken } from "./utils/jwt";
 import axios from "axios";
 
 const app = Express();
@@ -44,7 +42,7 @@ app.post("/tokens-update", (req: Express.Request, res: Express.Response) => {
 	if (accessToken)
 		axios
 			.post(
-				"https://jd5hwpred3.execute-api.ap-east-1.amazonaws.com/prod/api/update-token",
+				"https://o30vbc5f6b.execute-api.ap-southeast-1.amazonaws.com/update-token-count",
 				{ tokenChange },
 				{ headers: { "service-token": res.locals.serviceToken, Authorization: `Bearer ${accessToken}` } }
 			)
@@ -91,11 +89,12 @@ io.on("connection", (socket: Socket) => {
 			if (subRoom !== undefined) {
 				socket.data.roomId = null;
 				socket.data.subRoomIndex = null;
+				const roomDetails = rooms.find(roomId)?.serialize();
 				for (const socketId of Array.from(subRoom.keys())) {
 					if (socketId === socket.id) continue;
 					socket.to(socketId).emit(eventTypes.USER_UPDATE, {
 						status: WebRTCAckStatus.SUCCESS,
-						roomDetail: rooms.find(roomId)?.serialize(),
+						roomDetail: roomDetails,
 						subRoomUsers: subRoom.get(socketId),
 					});
 				}

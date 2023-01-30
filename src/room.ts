@@ -1,5 +1,5 @@
 import { v4 as uuid4 } from "uuid";
-import { IRoom, PeerUser, RoomUser, SerializedRoom } from "./types";
+import { IRoom, PeerUser, RoomUser, RoomDetail } from "./types";
 import { allocateInitiators } from "./utils/allocateInitiators";
 
 export type RoomMap = Map<string, Room>;
@@ -10,12 +10,14 @@ class Room implements IRoom {
 	roomName: string;
 	roomDescription: string;
 	subRooms: Array<RoomUser[]>;
+	background: string;
 
-	constructor({ roomId, roomName, roomDescription }: { roomId: string; roomName: string; roomDescription: string }) {
+	constructor({ roomId, roomName, roomDescription, background }: Partial<RoomDetail>) {
 		this.roomId = roomId;
 		this.roomName = roomName;
 		this.roomDescription = roomDescription;
 		this.subRooms = [];
+		this.background = background;
 	}
 
 	addUser = (socketId: string, roomUser: RoomUser): { subRoom: Map<string, PeerUser[]>; subRoomIndex: number } => {
@@ -57,13 +59,14 @@ class Room implements IRoom {
 		return Array.from(this.users.values());
 	}
 
-	serialize = (): SerializedRoom => {
+	serialize = (): RoomDetail => {
 		return {
 			roomId: this.roomId,
 			roomName: this.roomName,
 			roomDescription: this.roomDescription,
 			userCount: this.userCount,
 			users: this.serializedUsers,
+			background: this.background,
 		};
 	};
 }
@@ -73,21 +76,25 @@ const roomDetails = [
 		roomName: "Public Study Room 1",
 		roomId: uuid4(),
 		roomDescription: "Study for exams and get to know others",
+		background: "/backgrounds/lofi-girl.jpg",
 	}),
 	new Room({
 		roomName: "Public Study Room 2",
 		roomId: uuid4(),
 		roomDescription: "Study for exams and get to know others",
+		background: "/backgrounds/lofi-girl-3.jpg",
 	}),
 	new Room({
 		roomName: "Public Study Room 3",
 		roomId: uuid4(),
 		roomDescription: "Study for exams and get to know others",
+		background: "/backgrounds/lofi-girl-2.jpg",
 	}),
 	new Room({
 		roomName: "Public Study Room 4",
 		roomId: uuid4(),
 		roomDescription: "Study for exams and get to know others",
+		background: "/backgrounds/lofi-girl-3.jpg",
 	}),
 ];
 
@@ -98,7 +105,7 @@ class Rooms {
 		this.rooms = new Map(rooms.map((roomDetail) => [roomDetail.roomId, roomDetail]));
 	}
 
-	serialize(): SerializedRoom[] {
+	serialize(): RoomDetail[] {
 		return Array.from(this.rooms.values()).map((room) => room.serialize());
 	}
 

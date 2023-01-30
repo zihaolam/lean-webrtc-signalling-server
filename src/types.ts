@@ -12,15 +12,16 @@ export interface IRoom {
 
 	deleteUser: (socketId: string, subRoomIndex: number) => Map<string, PeerUser[]>;
 
-	serialize: () => SerializedRoom;
+	serialize: () => RoomDetail;
 }
 
-export interface SerializedRoom {
+export interface RoomDetail {
 	users: RoomUser[];
 	roomId: string;
 	roomName: string;
 	roomDescription: string;
 	userCount: number;
+	background: string;
 }
 
 export interface RoomUser {
@@ -53,13 +54,13 @@ export const WebRTCAckStatus = {
 };
 
 export interface RoomDetailsResponse {
-	roomDetails: SerializedRoom[];
+	roomDetails: RoomDetail[];
 	status: number;
 }
 
 export interface JoinRoomAcknowledgement {
 	status: number;
-	roomDetail: SerializedRoom;
+	roomDetail: RoomDetail;
 	subRoomUsers: RoomUser[];
 }
 
