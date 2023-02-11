@@ -58,12 +58,13 @@ io.on("connection", (socket: Socket) => {
 			socket.data.displayName = displayName;
 			socket.data.roomId = roomId;
 			try {
-				const { subRoom, subRoomIndex } = rooms.find(roomId)?.addUser(socket.id, { socketId: socket.id, displayName });
-				console.log(subRoom);
+				const room = rooms.find(roomId);
+				if (!room) return;
+				const { subRoom, subRoomIndex } = room?.addUser(socket.id, { socketId: socket.id, displayName, isEarnMode: false, isVideoOn: false });
 				socket.data.subRoomIndex = subRoomIndex;
 				const serializedRoom = rooms.find(roomId)?.serialize();
 				callback({ status: WebRTCAckStatus.SUCCESS, roomDetail: serializedRoom, subRoomUsers: subRoom.get(socket.id) });
-				for (const socketId of Array.from(subRoom.keys())) {
+				for (const socketId of Array.from(subRoom?.keys())) {
 					if (socketId === socket.id) continue;
 					socket.to(socketId).emit(eventTypes.USER_UPDATE, {
 						status: WebRTCAckStatus.SUCCESS,
@@ -106,6 +107,7 @@ io.on("connection", (socket: Socket) => {
 	socket.on("disconnect", () => {
 		if (socket.data.roomId) {
 			const subRoom = rooms.find(socket.data?.roomId)?.deleteUser(socket.id, socket.data?.subRoomIndex);
+			if (!subRoom) return;
 			if (subRoom !== undefined) {
 				for (const socketId of Array.from(subRoom.keys())) {
 					if (socketId === socket.id) continue;
@@ -119,6 +121,58 @@ io.on("connection", (socket: Socket) => {
 				console.log("invalid room id or subroom index");
 			}
 		}
+	});
+	socket.on(eventTypes.PAUSE_VIDEO, () => {
+		if (socket.data.roomId) {
+			const subRoom = rooms.find(socket.data.roomId).subRooms[socket.data.subRoomIndex];
+			if (!subRoom) return;
+			const userIndex = subRoom.findIndex((roomUser) => roomUser.socketId === socket.id);
+			if (userIndex) subRoom[userIndex].isVideoOn = false;
+			subRoom?.forEach((subRoomUser) => {
+				if (subRoomUser.socketId === socket.id) return;
+				socket.to(subRoomUser.socketId).emit(eventTypes.PAUSE_VIDEO, socket.id);
+			});
+		}
+	});
+	socket.on(eventTypes.START_VIDEO, () => {
+		if (socket.data.roomId) {
+			const subRoom = rooms.find(socket.data.roomId).subRooms[socket.data.subRoomIndex];
+			if (!subRoom) return;
+			const userIndex = subRoom.findIndex((roomUser) => roomUser.socketId === socket.id);
+			if (userIndex) subRoom[userIndex].isVideoOn = true;
+			subRoom?.forEach((subRoomUser) => {
+				if (subRoomUser.socketId === socket.id) return;
+				socket.to(subRoomUser.socketId).emit(eventTypes.START_VIDEO, socket.id);
+			});
+		}
+	});
+	socket.on(eventTypes.ON_EARN_MODE, () => {
+		if (socket.data.roomId) {
+			const subRoom = rooms.find(socket.data.roomId).subRooms[socket.data.subRoomIndex];
+			if (!subRoom) return;
+			const userIndex = subRoom.findIndex((roomUser) => roomUser.socketId === socket.id);
+			if (userIndex) subRoom[userIndex].isEarnMode = true;
+			subRoom?.forEach((subRoomUser) => {
+				if (subRoomUser.socketId === socket.id) return;
+				socket.to(subRoomUser.socketId).emit(eventTypes.ON_EARN_MODE, socket.id);
+			});
+		}
+	});
+	socket.on(eventTypes.OFF_EARN_MODE, () => {
+		if (socket.data.roomId) {
+			const subRoom = rooms.find(socket.data.roomId).subRooms[socket.data.subRoomIndex];
+			if (!subRoom) return;
+			const userIndex = subRoom.findIndex((roomUser) => roomUser.socketId === socket.id);
+			if (userIndex) subRoom[userIndex].isEarnMode = false;
+			subRoom?.forEach((subRoomUser) => {
+				if (subRoomUser.socketId === socket.id) return;
+				socket.to(subRoomUser.socketId).emit(eventTypes.OFF_EARN_MODE, socket.id);
+			});
+		}
+	});
+
+	socket.on(eventTypes.REQUEST_VIDEO, (socketId: string) => {
+		socket.to(socketId).emit(eventTypes.REQUEST_VIDEO);
 	});
 });
 

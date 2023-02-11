@@ -27,6 +27,8 @@ export interface RoomDetail {
 export interface RoomUser {
 	socketId: string;
 	displayName: string;
+	isVideoOn: boolean;
+	isEarnMode: boolean;
 }
 
 export interface PrivateMessage {
@@ -46,6 +48,11 @@ export const eventTypes = {
 	LEAVE_ROOM: "leave-room",
 	USER_UPDATE: "user-update",
 	TOKEN_UPDATE: "token-update",
+	PAUSE_VIDEO: "pause-video",
+	START_VIDEO: "start-video",
+	ON_EARN_MODE: "on-earn-mode",
+	OFF_EARN_MODE: "off-earn-mode",
+	REQUEST_VIDEO: "request-video",
 };
 
 export const WebRTCAckStatus = {
